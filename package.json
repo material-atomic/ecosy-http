@@ -1,0 +1,75 @@
+{
+  "name": "@ecosy/http",
+  "version": "0.1.0",
+  "description": "A standalone, zero-dependency HTTP client and fetcher builder",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "unpkg": "./dist/ecosy-http.umd.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./plugins": {
+      "source": "./src/plugins/index.ts",
+      "types": "./dist/plugins/index.d.ts",
+      "import": "./dist/plugins/index.mjs",
+      "require": "./dist/plugins/index.js"
+    }
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "eslint src/ && rollup -c",
+    "prepublishOnly": "yarn clean && yarn build",
+    "dev": "rollup -c --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/material-atomic/ecosy-http.git"
+  },
+  "keywords": [
+    "ecosy",
+    "http",
+    "fetcher",
+    "client",
+    "typescript"
+  ],
+  "author": "material-atomic",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^26.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^10.9.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "glob": "^13.0.6",
+    "prettier": "^3.9.6",
+    "rimraf": "^6.1.3",
+    "rollup": "^4.62.5",
+    "tslib": "^2.8.1",
+    "typescript": "6"
+  },
+  "agents": {
+    "skills": [
+      "$this://agents/skills/ecosy-http-fetcher/SKILL.md"
+    ]
+  }
+}
