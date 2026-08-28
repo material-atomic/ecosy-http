@@ -5,6 +5,7 @@ import type { HttpResponse } from "./response";
 import type { HttpInitInterceptors } from "./init";
 import { type HttpMethod } from "./method";
 import { asArray } from "./array";
+import type { EndpointConfig } from "./endpoint";
 
 /**
  * Result structure returned by a Fetcher execution.
@@ -95,7 +96,7 @@ export interface IFetcherBuilder {
   /** Sets the endpoint resolver function for the client. */
   endpoint(fn: HttpClientOptions["endpoint"]): IFetcherBuilder;
   /** Registers endpoints for a service, or multiple services at once. */
-  register(serviceOrConfigs: string | Record<string, import("./endpoint").EndpointConfig>, endpoints?: import("./endpoint").EndpointConfig): IFetcherBuilder;
+  register(serviceOrConfigs: string | Record<string, EndpointConfig>, endpoints?: EndpointConfig): IFetcherBuilder;
   
   /** The underlying HTTP instance associated with this builder. */
   readonly http: Http;
