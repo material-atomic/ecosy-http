@@ -66,15 +66,25 @@ export function createClient(options: HttpClientOptions = {}) {
     return {
       key,
       fn: async (...args: Args) => {
+        /* One options object per call, whatever the method.
+         *
+         * `post(url, body, init)` takes the body first, so passing the usual
+         * `{ params, body }` straight through made the whole object the body
+         * and left `params` unread — every `{id}` in a mutation URL resolved
+         * to an empty string. Split it here, so a call site never has to know
+         * which argument slot a given method happens to use. */
+        const [options] = args as unknown as [Record<string, unknown> | undefined];
+        const { body, ...init } = (options ?? {}) as { body?: unknown };
+
         switch (method) {
           case Methods.POST:
-            return await instance.post<T, E>(url, ...(args as unknown as [any, any]));
+            return await instance.post<T, E>(url, body, init as any);
           case Methods.PUT:
-            return await instance.put<T, E>(url, ...(args as unknown as [any, any]));
+            return await instance.put<T, E>(url, body, init as any);
           case Methods.PATCH:
-            return await instance.patch<T, E>(url, ...(args as unknown as [any, any]));
+            return await instance.patch<T, E>(url, body, init as any);
           case Methods.DELETE:
-            return await instance.delete<T, E>(url, ...(args as unknown as [any, any]));
+            return await instance.delete<T, E>(url, body, init as any);
           case Methods.HEAD:
             return await instance.head<T, E>(url, ...(args as unknown as [any]));
           case Methods.OPTIONS:
