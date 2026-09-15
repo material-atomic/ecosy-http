@@ -90,9 +90,9 @@ const esmConfig = {
 const umdConfig = {
   input: "src/index.ts",
   output: {
-    file: "dist/ecosy-core.umd.js",
+    file: "dist/ecosy-http.umd.js",
     format: "umd",
-    name: "EcosyCore",
+    name: "EcosyHttp",
     sourcemap: true,
     exports: "named",
   },

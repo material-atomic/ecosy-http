@@ -1,6 +1,6 @@
 {
   "name": "@ecosy/http",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A standalone, zero-dependency HTTP client and fetcher builder",
   "license": "MIT",
   "publishConfig": {
@@ -20,6 +20,7 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./package.json": "./package.json",
     "./plugins": {
       "source": "./src/plugins/index.ts",
       "types": "./dist/plugins/index.d.ts",
