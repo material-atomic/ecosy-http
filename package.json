@@ -1,6 +1,6 @@
 {
   "name": "@ecosy/http",
-  "version": "0.1.4",
+  "version": "0.1.3",
   "description": "A standalone, zero-dependency HTTP client and fetcher builder",
   "license": "MIT",
   "publishConfig": {
