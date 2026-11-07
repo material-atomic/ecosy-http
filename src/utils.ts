@@ -150,18 +150,36 @@ export class HttpUtils {
     });
   }
 
-  static normalizeHeaders(headers: Record<string, string> = {}, isFormData?: boolean) {
-    if (isFormData && "Content-Type" in headers) {
-      delete headers["Content-Type"];
-    } else {
-      headers["Content-Type"] =
-        headers["Content-Type"] || "application/json";
+  /**
+   * Merges the default headers under the request's own and settles `Content-Type`.
+   *
+   * A body the runtime encodes itself (FormData, URLSearchParams, Blob) must carry no `Content-Type` from us: for
+   * FormData only the runtime knows the multipart boundary, and a `Content-Type` written here — the request's, or
+   * `application/json` from the defaults — leaves the server unable to read the form. The check runs after the merge
+   * and ignores case, so neither the defaults nor a `content-type` key bring the header back. Any other body gets
+   * `application/json` unless the request named a type.
+   */
+  static normalizeHeaders(headers: Record<string, string> = {}, runtimeEncodedBody?: boolean) {
+    const merged: Record<string, string> = { ...this.defaultHeaders, ...headers };
+    const typeKeys = Object.keys(merged).filter((k) => k.toLowerCase() === "content-type");
+
+    if (runtimeEncodedBody) {
+      for (const k of typeKeys) delete merged[k];
+      return merged;
     }
 
-    return {
-      ...this.defaultHeaders,
-      ...headers,
-    };
+    const own = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
+    const value = (own ? headers[own] : undefined) || merged[typeKeys[0] ?? ""] || "application/json";
+    for (const k of typeKeys) delete merged[k];
+    merged["Content-Type"] = value;
+    return merged;
+  }
+
+  /** A body `fetch` encodes on its own and gives its own `Content-Type` (FormData, URLSearchParams, Blob). */
+  static isRuntimeEncodedBody(body: unknown): boolean {
+    return isFormData(body)
+      || (typeof URLSearchParams !== "undefined" && body instanceof URLSearchParams)
+      || (typeof Blob !== "undefined" && body instanceof Blob);
   }
 
   static removeURL(options: Omit<HttpInitSlice, "url">) {
@@ -183,7 +201,7 @@ export class HttpUtils {
     return out as RequestInit;
   }
 
-  static normalizeBody(options: Omit<HttpInitSlice, "url">): string | FormData | Uint8Array | ArrayBuffer | URLSearchParams | undefined {
+  static normalizeBody(options: Omit<HttpInitSlice, "url">): string | FormData | Uint8Array | ArrayBuffer | URLSearchParams | Blob | undefined {
     const { method, body } = options;
 
     if (
@@ -205,8 +223,8 @@ export class HttpUtils {
       return body;
     }
 
-    // Allow raw binary payloads (e.g. multipart/related body)
-    if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
+    // Allow raw binary payloads (e.g. multipart/related body, a file as it is)
+    if (body instanceof Uint8Array || body instanceof ArrayBuffer || (typeof Blob !== "undefined" && body instanceof Blob)) {
       return body;
     }
 

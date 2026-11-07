@@ -1,4 +1,3 @@
-import { isFormData } from "./utils/formdata";
 import { asArray } from "./array";
 import { getHttpInitSlice, type HttpInitSlice, type HttpInit } from "./init";
 import { Methods } from "./method";
@@ -18,7 +17,7 @@ export abstract class HttpCore {
       }
 
       const fullURL = HttpUtils.normalizeURL(modifiedOptions as HttpInit);
-      const requestHeaders = HttpUtils.normalizeHeaders(modifiedOptions.headers || {}, isFormData(modifiedOptions.body));
+      const requestHeaders = HttpUtils.normalizeHeaders(modifiedOptions.headers || {}, HttpUtils.isRuntimeEncodedBody(modifiedOptions.body));
 
       const response = await fetch(fullURL, {
         ...HttpUtils.extractFetchOptions(modifiedOptions),
