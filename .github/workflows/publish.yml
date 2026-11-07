@@ -107,6 +107,25 @@ jobs:
             console.log(files.length + " files, dist present, no src or tests");
           '
 
+      # Dry run only: what this run presents to npm, and whether npm accepts it. Prints the OIDC claims
+      # npm matches against Settings -> Trusted publishing, then asks npm for a publish token and reports
+      # only the HTTP status and npm's message (never a token).
+      - name: Check Trusted publishing (dry-run only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+        run: |
+          set -euo pipefail
+          NAME=$(node -p "require('./package.json').name")
+          ID_TOKEN=$(curl -sS -f -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).value')
+          echo "$ID_TOKEN" | node -e '
+            const t = require("fs").readFileSync(0, "utf8").trim().split(".")[1];
+            const c = JSON.parse(Buffer.from(t.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString());
+            for (const k of ["repository", "repository_owner", "workflow_ref", "job_workflow_ref", "environment", "ref", "sub"]) console.log(`  ${k}: ${JSON.stringify(c[k] ?? null)}`);
+          '
+          ENC=$(node -p "encodeURIComponent('$NAME')")
+          STATUS=$(curl -sS -o exchange.json -w '%{http_code}' -X POST -H "Authorization: Bearer $ID_TOKEN" "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$ENC")
+          node -e 'const j = JSON.parse(require("fs").readFileSync("exchange.json", "utf8") || "{}"); console.log(`npm OIDC exchange: HTTP ${process.argv[1]} ${j.token ? "(token issued, not shown)" : JSON.stringify(j)}`)' "$STATUS"
+          rm -f exchange.json
+
       # A dry run never authenticates, so it cannot tell whether Trusted publishing is set up: only a
       # real publish can. It still catches a wrong command shape, such as a prerelease without --tag.
       - name: Publish rehearsal (dry-run)
@@ -135,7 +154,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           case "$VERSION" in
             *-*) npm publish --ignore-scripts --access public --provenance --tag next ;;
-            *) npm publish --ignore-scripts --access public --provenance ;;
+            *) npm publish --ignore-scripts --access public --provenance --loglevel verbose ;;
           esac
 
       # The exit code says the CLI is satisfied; the registry is read back to say the version is
