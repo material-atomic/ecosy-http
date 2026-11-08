@@ -164,13 +164,13 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           NAME=$(node -p "require('./package.json').name")
-          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+          for attempt in $(seq 1 30); do
             if [ "$(npm view "$NAME@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
               echo "$NAME@$VERSION is on the registry (attempt $attempt)."
               exit 0
             fi
-            echo "attempt $attempt/10: $NAME@$VERSION not served yet"
-            sleep 6
+            echo "attempt $attempt/30: $NAME@$VERSION not served yet"
+            sleep 10
           done
           echo "$NAME@$VERSION still not on the registry after a minute, though publish reported success." >&2
           exit 1
